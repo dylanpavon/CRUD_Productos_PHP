@@ -1,76 +1,322 @@
-{% extends 'base.html.twig' %}
-
+{% extends 'base.html.twig' %} 
 {% block body %}
-    <div id="wrapper">
-        <div id="container">
-            <div id="welcome">
-                <h1><span>Welcome to</span> Symfony {{ constant('Symfony\\Component\\HttpKernel\\Kernel::VERSION') }}</h1>
+<div class="container mt-5">
+    {% for label, messages in app.session.flashBag.all() %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+    {% endfor %}
+    
+    <form action="{{ path('user_new') }}" method="post" id="userRegistro">
+        <h3 class="mb-3">Registro de Nuevos Usuarios</h3>
+        <div class="mb-3 row">
+            <label>Email</label>
+            <div class="col-sm-10">
+              <input
+                type="text"
+                class="form-control"
+                id="inputEmail"
+                name="email"
+                placeholder="email@example.com"
+                required
+              />
             </div>
-
-            <div id="status">
-                <p>
-                    <svg id="icon-status" width="1792" height="1792" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1671 566q0 40-28 68l-724 724-136 136q-28 28-68 28t-68-28l-136-136-362-362q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 295 656-657q28-28 68-28t68 28l136 136q28 28 28 68z" fill="#759E1A"/></svg>
-
-                    Your application is now ready. You can start working on it at:
-                    <code>{{ base_dir }}</code>
-                </p>
             </div>
-
-            <div id="next">
-                <h2>What's next?</h2>
-                <p>
-                    <svg id="icon-book" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="-12.5 9 64 64" enable-background="new -12.5 9 64 64" xml:space="preserve">
-                        <path fill="#AAA" d="M6.8,40.8c2.4,0.8,4.5-0.7,4.9-2.5c0.2-1.2-0.3-2.1-1.3-3.2l-0.8-0.8c-0.4-0.5-0.6-1.3-0.2-1.9
-                            c0.4-0.5,0.9-0.8,1.8-0.5c1.3,0.4,1.9,1.3,2.9,2.2c-0.4,1.4-0.7,2.9-0.9,4.2l-0.2,1c-0.7,4-1.3,6.2-2.7,7.5
-                            c-0.3,0.3-0.7,0.5-1.3,0.6c-0.3,0-0.4-0.3-0.4-0.3c0-0.3,0.2-0.3,0.3-0.4c0.2-0.1,0.5-0.3,0.4-0.8c0-0.7-0.6-1.3-1.3-1.3
-                            c-0.6,0-1.4,0.6-1.4,1.7s1,1.9,2.4,1.8c0.8,0,2.5-0.3,4.2-2.5c2-2.5,2.5-5.4,2.9-7.4l0.5-2.8c0.3,0,0.5,0.1,0.8,0.1
-                            c2.4,0.1,3.7-1.3,3.7-2.3c0-0.6-0.3-1.2-0.9-1.2c-0.4,0-0.8,0.3-1,0.8c-0.1,0.6,0.8,1.1,0.1,1.5c-0.5,0.3-1.4,0.6-2.7,0.4l0.3-1.3
-                            c0.5-2.6,1-5.7,3.2-5.8c0.2,0,0.8,0,0.8,0.4c0,0.2,0,0.2-0.2,0.5c-0.2,0.3-0.3,0.4-0.2,0.7c0,0.7,0.5,1.1,1.2,1.1
-                            c0.9,0,1.2-1,1.2-1.4c0-1.2-1.2-1.8-2.6-1.8c-1.5,0.1-2.8,0.9-3.7,2.1c-1.1,1.3-1.8,2.9-2.3,4.5c-0.9-0.8-1.6-1.8-3.1-2.3
-                            c-1.1-0.7-2.3-0.5-3.4,0.3c-0.5,0.4-0.8,1-1,1.6c-0.4,1.5,0.4,2.9,0.8,3.4l0.9,1c0.2,0.2,0.6,0.8,0.4,1.5c-0.3,0.8-1.2,1.3-2.1,1
-                            c-0.4-0.2-1-0.5-0.9-0.9c0.1-0.2,0.2-0.3,0.3-0.5s0.1-0.3,0.1-0.3c0.2-0.6-0.1-1.4-0.7-1.6c-0.6-0.2-1.2,0-1.3,0.8
-                            C4.3,38.4,4.7,40,6.8,40.8z M46.1,20.9c0-4.2-3.2-7.5-7.1-7.5h-3.8C34.8,10.8,32.7,9,30.2,9L-2.3,9.1c-2.8,0.1-4.9,2.4-4.9,5.4
-                            L-7,58.6c0,4.8,8.1,13.9,11.6,14.1l34.7-0.1c3.9,0,7-3.4,7-7.6L46.1,20.9z M-0.3,36.4c0-8.6,6.5-15.6,14.5-15.6
-                            c8,0,14.5,7,14.5,15.6S22.1,52,14.2,52C6.1,52-0.3,45-0.3,36.4z M42.1,65.1c0,1.8-1.5,3.1-3.1,3.1H4.6c-0.7,0-3-1.8-4.5-4.4h30.4
-                            c2.8,0,5-2.4,5-5.4V17.9h3.7c1.6,0,2.9,1.4,2.9,3.1V65.1L42.1,65.1z"/>
-                    </svg>
-
-                    Read the documentation to learn
-                    <a href="https://symfony.com/doc/{{ constant('Symfony\\Component\\HttpKernel\\Kernel::VERSION')[:3] }}/page_creation.html">
-                        How to create your first page in Symfony
-                    </a>
-                </p>
+        
+            <div class="mb-3 row">
+              <label>Username</label>
+              <div class="col-sm-10">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="inputUsername"
+                  name="username"
+                  placeholder="example_123"
+                  required
+                />
+              </div>
             </div>
+            <div class="mb-3 row">
+              <label>Password</label>
+              <div class="col-sm-10">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="inputPassword"
+                  name="password"
+                  required
+                />
+              </div>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-success mb-3">Registrar</button>
+                <button class="btn btn-danger mb-3 logueado">Ya tengo Cuenta</button>
+            </div>
+    </form>
 
+    <form action="{{ path('user_login') }}" method="post" id="userLogin" style="display: none;">
+        <h3 class="mb-3">Ingreso Usuarios Registrados</h3>
+        <div class="mb-3 row">
+            <label>Email</label>
+            <div class="col-sm-10">
+              <input
+                type="text"
+                class="form-control"
+                id="inputEmail"
+                name="email"
+                placeholder="email@example.com"
+                required
+              />
+            </div>
+            </div>
+        
+            <div class="mb-3 row">
+              <label>Username</label>
+              <div class="col-sm-10">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="inputUsername"
+                  name="username"
+                  placeholder="example_123"
+                  required
+                />
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label>Password</label>
+              <div class="col-sm-10">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="inputPassword"
+                  name="password"
+                  required
+                />
+              </div>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-success mb-3">Ingresar</button>
+                <button class="btn btn-danger mb-3 volver">No tengo Cuenta</button>
+            </div>
+    </form>
+
+    <div class="container mt-5" id="usrLogueado">
+        <h3>Contenido exclusivo para usuarios registrados.</h3>
+        <br>
+        <h4>Gestionar Categorías</h4>
+        <form action="">
+            <select class="form-select" aria-label="Default select example" id="categorySelect">
+                <option selected disabled>Categorías</option>
+               
+                    <option value="category.id" name="category.name">category.name</option>
+                
+            </select>
+            <button type="button" class="btn btn-info mt-1" id="modifyCategoryBtn">Modificar</button>
+            <a href="" class="btn btn-danger mt-1">Eliminar</a>
+            <button type="button" class="btn btn-success mt-1" id="createCategoryBtn">Crear</button>
+        </form>
+        
+        <!-- Modal -->
+    <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="categoryModalLabel">Crear/Modificar Categoría</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
+        <div class="modal-body">
+          <form id="categoryForm">
+            <div class="form-group">
+              <input type="text" class="form-control" id="categoryName" placeholder="Nombre Categoría" name="categoryName" required>
+            </div>
+            <div class="form-group">
+              <input type="text" class="form-control" id="categoryIcon" placeholder="Src del Ícono" name="categoryIcon">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-primary" id="saveCategory">Guardar</button>
+        </div>
+      </div>
     </div>
-{% endblock %}
+    </div>
+  
+    </div>
+</div>
+<!--Script Modal Categorías-->
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const createCategoryBtn = document.getElementById('createCategoryBtn');
+        const modifyCategoryBtn = document.getElementById('modifyCategoryBtn');
+        const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+        const categoryModalLabel = document.getElementById('categoryModalLabel');
+        const categoryNameInput = document.getElementById('categoryName');
+        const categoryIconInput = document.getElementById('categoryIcon');
+        const saveCategoryBtn = document.getElementById('saveCategory');
+        let isEditing = false;
+        let categoryId = null;
+    
+        createCategoryBtn.addEventListener('click', () => {
+            isEditing = false;
+            categoryId = null;
+            categoryModalLabel.textContent = 'Crear Categoría';
+            categoryNameInput.value = '';
+            categoryIconInput.value = '';
+            categoryModal.show();
+        });
+    
+        modifyCategoryBtn.addEventListener('click', () => {
+            isEditing = true;
+            // Aquí deberías obtener el ID y los valores actuales de la categoría seleccionada
+            categoryId = document.getElementById('categorySelect').value;
+            categoryModalLabel.textContent = 'Modificar Categoría';
+            categoryNameInput.value = 'Modificar Nombre'; // Reemplazar con el valor real
+            categoryIconInput.value = 'Modificar Src Icono'; // Reemplazar con el valor real
+            categoryModal.show();
+        });
+    
+        saveCategoryBtn.addEventListener('click', () => {
+            const categoryName = categoryNameInput.value;
+            const categoryIcon = categoryIconInput.value;
+            const url = isEditing ? `/category/edit/${categoryId}` : '/category/new';
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `name=${encodeURIComponent(categoryName)}&icon=${encodeURIComponent(categoryIcon)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log(data.message);
+                    // Aquí puedes actualizar la interfaz de usuario o redirigir si es necesario
+                    categoryModal.hide();
+                } else {
+                    console.error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });    
+</script>
+    
+<!--Script Login Usuarios-->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnLogueado = document.querySelector('.logueado');
+    const btnVolver = document.querySelector('.volver');
+    const formRegistro = document.getElementById('userRegistro');
+    const formLogin = document.getElementById('userLogin');
 
-{% block stylesheets %}
-<style>
-    body { background: #F5F5F5; font: 18px/1.5 sans-serif; }
-    h1, h2 { line-height: 1.2; margin: 0 0 .5em; }
-    h1 { font-size: 36px; }
-    h2 { font-size: 21px; margin-bottom: 1em; }
-    p { margin: 0 0 1em 0; }
-    a { color: #0000F0; }
-    a:hover { text-decoration: none; }
-    code { background: #F5F5F5; max-width: 100px; padding: 2px 6px; word-wrap: break-word; }
-    #wrapper { background: #FFF; margin: 1em auto; max-width: 800px; width: 95%; }
-    #container { padding: 2em; }
-    #welcome, #status { margin-bottom: 2em; }
-    #welcome h1 span { display: block; font-size: 75%; }
-    #icon-status, #icon-book { float: left; height: 64px; margin-right: 1em; margin-top: -4px; width: 64px; }
-    #icon-book { display: none; }
-
-    @media (min-width: 768px) {
-        #wrapper { width: 80%; margin: 2em auto; }
-        #icon-book { display: inline-block; }
-        #status a, #next a { display: block; }
-
-        @-webkit-keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
-        .sf-toolbar { opacity: 0; -webkit-animation: fade-in 1s .2s forwards; animation: fade-in 1s .2s forwards;}
+    if (btnLogueado) {
+        btnLogueado.addEventListener('click', function() {
+            formRegistro.style.display = 'none';
+            formLogin.style.display = 'block';
+        });
     }
-</style>
-{% endblock %}
+
+    if (btnVolver) {
+        btnVolver.addEventListener('click', function() {
+            formLogin.style.display = 'none';
+            formRegistro.style.display = 'block';
+        });
+    }
+
+    formLogin.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(formLogin);
+
+        fetch(formLogin.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.logued) {
+                // Oculta el formulario de inicio de sesión
+                formLogin.style.display = 'none';
+                const divLogueado = document.getElementById('usrLogueado');
+                divLogueado.style.display = 'block';
+            } else {
+                alert(data.message);
+            }
+        });
+    });
+});
+    
+</script>
+  <!--Script Buscador-->
+  <script>
+    (function (document) {
+      "buscador";
+
+      var LightTableFilter = (function (Arr) {
+        var _input;
+
+        function _onInputEvent(e) {
+          _input = e.target;
+          var tables = document.getElementsByClassName(
+            _input.getAttribute("data-table")
+          );
+          Arr.forEach.call(tables, function (table) {
+            Arr.forEach.call(table.tBodies, function (tbody) {
+              Arr.forEach.call(tbody.rows, _filter);
+            });
+          });
+        }
+
+        function _filter(row) {
+          var text = row.textContent.toLowerCase(),
+            val = _input.value.toLowerCase();
+          row.style.display = text.indexOf(val) === -1 ? "none" : "table-row";
+        }
+
+        return {
+          init: function () {
+            var inputs = document.getElementsByClassName("light-table-filter");
+            Arr.forEach.call(inputs, function (input) {
+              input.oninput = _onInputEvent;
+            });
+          },
+        };
+      })(Array.prototype);
+
+      document.addEventListener("readystatechange", function () {
+        if (document.readyState === "complete") {
+          LightTableFilter.init();
+        }
+      });
+    })(document);
+  </script>
+
+  {% endblock %} 
+  {% block stylesheets %}
+  <style>
+    .fondo {
+      background: #ffefba; /* fallback for old browsers */
+      background: -webkit-linear-gradient(
+        to right,
+        #ffffff,
+        #ffefba
+      ); /* Chrome 10-25, Safari 5.1-6 */
+      background: linear-gradient(
+        to right,
+        #ffffff,
+        #ffefba
+      ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    }
+  </style>
+  {% endblock %}
+

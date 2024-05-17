@@ -37,24 +37,17 @@ class CategoryController extends Controller
      * @Route("/new", name="category_new")
      * @Method({"GET", "POST"})
      */
-    public function newAction(Request $request)
+    public function newCategoryAction(Request $request)
     {
+        $em = $this->getDoctrine()->getManager();
+        
         $category = new Category();
-        $form = $this->createForm('AppBundle\Form\CategoryType', $category);
-        $form->handleRequest($request);
+        $category->setName($request->request->get('categoryName'));
+        $category->setIcon($request->request->get('categoryIcon'));
+        
+        $em->persist($category);
+        $em->flush();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($category);
-            $em->flush();
-
-            return $this->redirectToRoute('category_show', array('id' => $category->getId()));
-        }
-
-        return $this->render('category/new.html.twig', array(
-            'category' => $category,
-            'form' => $form->createView(),
-        ));
     }
 
     /**
@@ -63,14 +56,15 @@ class CategoryController extends Controller
      * @Route("/{id}", name="category_show")
      * @Method("GET")
      */
-    public function showAction(Category $category)
+    public function listCategoriesAction()
     {
-        $deleteForm = $this->createDeleteForm($category);
-
-        return $this->render('category/show.html.twig', array(
-            'category' => $category,
-            'delete_form' => $deleteForm->createView(),
-        ));
+        $categories = $this->getDoctrine()
+            ->getRepository(Category::class)
+            ->findAll();
+    
+        return $this->render('default/index.html.twig', [
+            'categories' => $categories
+        ]);
     }
 
     /**
@@ -79,23 +73,17 @@ class CategoryController extends Controller
      * @Route("/{id}/edit", name="category_edit")
      * @Method({"GET", "POST"})
      */
-    public function editAction(Request $request, Category $category)
+    public function editCategoryAction(Request $request, $id)
     {
-        $deleteForm = $this->createDeleteForm($category);
-        $editForm = $this->createForm('AppBundle\Form\CategoryType', $category);
-        $editForm->handleRequest($request);
+        $em = $this->getDoctrine()->getManager();
+        
+        $category = $em->getRepository(Category::class)->find($id);
+        
+        $category->setName($request->request->get('categoryName'));
+        $category->setIcon($request->request->get('categoryIcon'));
+        
+        $em->flush();
 
-        if ($editForm->isSubmitted() && $editForm->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('category_edit', array('id' => $category->getId()));
-        }
-
-        return $this->render('category/edit.html.twig', array(
-            'category' => $category,
-            'edit_form' => $editForm->createView(),
-            'delete_form' => $deleteForm->createView(),
-        ));
     }
 
     /**

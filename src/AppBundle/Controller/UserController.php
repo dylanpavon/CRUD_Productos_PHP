@@ -39,22 +39,46 @@ class UserController extends Controller
      */
     public function newAction(Request $request)
     {
-        $user = new User();
-        $form = $this->createForm('AppBundle\Form\UserType', $user);
-        $form->handleRequest($request);
+        if ($request->isMethod('POST')) {
+            $email = $request->request->get('email');
+            $username = $request->request->get('username');
+            $password = $request->request->get('password');
 
-        if ($form->isSubmitted() && $form->isValid()) {
+            $user = new User();
+            $user->setEmail($email);
+            $user->setUsername($username);
+            $user->setPassword($password); // Deberías codificar la contraseña antes de guardarla
+
             $em = $this->getDoctrine()->getManager();
             $em->persist($user);
             $em->flush();
 
-            return $this->redirectToRoute('user_show', array('id' => $user->getId()));
+            $this->addFlash('success', 'Usuario registrado correctamente.');
+            return $this->redirectToRoute('homepage'); // Cambia 'user_list' a la ruta que desees redirigir
         }
 
-        return $this->render('user/new.html.twig', array(
-            'user' => $user,
-            'form' => $form->createView(),
-        ));
+        return $this->render('default/index.html.twig');
+    }
+    /**
+     * @Route("/login", name="user_login", methods={"POST"})
+     */
+    public function loginAction(Request $request)
+    {
+        $username = $request->request->get('username');
+        $password = $request->request->get('password');
+        $logued = false;
+
+        $user = $this->getDoctrine()
+            ->getRepository(User::class)
+            ->findOneBy(['username' => $username]);
+
+        if ($user && password_verify($password, $user->getPassword())) {
+            $logued = true;
+        }
+
+        return $this->render('default/index.html.twig', [
+            'logued' => $logued,
+        ]);
     }
 
     /**
