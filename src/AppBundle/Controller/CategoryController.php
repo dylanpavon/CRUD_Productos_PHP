@@ -5,7 +5,9 @@ namespace AppBundle\Controller;
 use AppBundle\Entity\Category;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;use Symfony\Component\HttpFoundation\Request;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * Category controller.
@@ -26,9 +28,15 @@ class CategoryController extends Controller
 
         $categories = $em->getRepository('AppBundle:Category')->findAll();
 
-        return $this->render('category/index.html.twig', array(
-            'categories' => $categories,
-        ));
+        $categoryData = [];
+        foreach ($categories as $category) {
+            $categoryData[] = [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+            ];
+        }
+
+        return new JsonResponse(['status' => 'success', 'categories' => $categoryData]);
     }
 
     /**
@@ -39,14 +47,30 @@ class CategoryController extends Controller
      */
     public function newCategoryAction(Request $request)
     {
-        $em = $this->getDoctrine()->getManager();
         
-        $category = new Category();
-        $category->setName($request->request->get('categoryName'));
-        $category->setIcon($request->request->get('categoryIcon'));
+
+        if ($request->isMethod('POST')){
+            $categoryName = $request->request->get('categoryName');
+            $categoryIcon = $request->request->get('categoryIcon');
+    
+            if ($categoryName != null) {
+                $category = new Category();
+                $category->setName($categoryName);
+                $category->setIcon($categoryIcon);
+            
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($category);
+                $em->flush();
+
+                $this->addFlash('success', 'Categoría registrada correctamente.');
+                return new JsonResponse(['status' => 'success', 'message' => 'Categoría creada correctamente.'], 200);
+            }
+        }
         
-        $em->persist($category);
-        $em->flush();
+        else {
+            $this->addFlash('danger', 'Ocurrió un error. Inténtelo de nuevo.');
+            return new JsonResponse(['status' => 'error', 'message' => 'Faltan datos.'], 400);}
+
 
     }
 

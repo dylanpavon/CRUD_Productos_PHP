@@ -5,7 +5,10 @@ namespace AppBundle\Controller;
 use AppBundle\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;use Symfony\Component\HttpFoundation\Request;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
+
 
 /**
  * User controller.
@@ -60,25 +63,38 @@ class UserController extends Controller
         return $this->render('default/index.html.twig');
     }
     /**
-     * @Route("/login", name="user_login", methods={"POST"})
+     * @Route("/login", name="user_login")
+     * @Method({"GET", "POST"})
      */
     public function loginAction(Request $request)
     {
-        $username = $request->request->get('username');
-        $password = $request->request->get('password');
+        $username = $request->request->get('usernameL');
+        $password = $request->request->get('passwordL');
         $logued = false;
 
         $user = $this->getDoctrine()
             ->getRepository(User::class)
             ->findOneBy(['username' => $username]);
 
-        if ($user && password_verify($password, $user->getPassword())) {
-            $logued = true;
-        }
 
-        return $this->render('default/index.html.twig', [
-            'logued' => $logued,
-        ]);
+
+        if ($user) {
+            $storedPassword = stream_get_contents($user->getPassword());
+            $storedPassword = password_hash($storedPassword,null);
+            
+    
+            if (password_verify($password, $storedPassword)) {
+                $logued = true;
+                $this->addFlash('success', 'Sesión iniciada, bienvenido!');
+    
+                return new JsonResponse(['status' => 'success', 'logued' => $logued, 'message' => 'Bienvenido!'], 200);
+            }
+        }
+        $this->addFlash('danger', 'Credenciales inválidas. Inténtelo de nuevo.');
+        return new JsonResponse(['status' => 'error', 'logued' => $logued, 'message' => 'Credenciales inválidas. Inténtelo de nuevo.'], 401);
+
+        
+
     }
 
     /**
