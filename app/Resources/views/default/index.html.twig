@@ -12,6 +12,77 @@
   <!-- Div para mensajes de error o éxito -->
   <div id="message-container"  class="alert-dismissible fade show">
   </div>
+
+    <!-- Div Usr Logueado -->
+    <div class="container mt-5" id="usrLogueado" style="display: none;">
+      <button  type="button" id="cerrarSesion" class="btn btn-secondary position-absolute top-right" id="cornerButton">Cerrar sesión</button>
+      <h3>Bienvenido!</h3>
+      <br>
+      <div>
+        <h4>Gestionar Categorías</h4>
+      <form action="{{ path('category_index') }}" method="post" id="lstCategorias">
+          <select class="form-select" aria-label="Default select example" id="categorySelect">
+              <option selected disabled id="defaultOption">Categorías</option>
+          </select>
+          <button type="button" class="btn btn-info mt-1" id="modifyCategoryBtn">Modificar</button>
+          <button type="button"  class="btn btn-danger mt-1 delete-btn" id="deleteCategoryBtn">Eliminar</button>
+          <button type="button" class="btn btn-success mt-1" id="createCategoryBtn">Crear</button>
+      </form>
+
+    </div>
+      
+      <!-- Modal Categorías-->
+  <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="categoryModalLabel">Crear/Modificar Categoría</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    <form id="categoryForm" method="POST">
+      <div class="modal-body">
+          <div class="form-group">
+            <input type="text" class="form-control" id="categoryName" placeholder="Nombre Categoría" name="categoryName" required>
+          </div>
+          <div class="form-group">
+            <input type="text" class="form-control" id="categoryIcon" placeholder="Src del Ícono" name="categoryIcon">
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <button type="submit" class="btn btn-primary" id="saveCategory">Guardar</button>
+      </div>
+    </form>
+
+    </div>
+  </div>
+  </div>
+
+  <!--Modal Eliminar-->
+  <form action="" id="frmEliminar" method="post">
+    <div class="modal" tabindex="-1" id="deleteModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Eliminar</h5>
+            <button type="button" class="btn-close" data-dismiss="modal" aria-label="close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Realmente desea eliminar este elemento?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger confirmDelete">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  
+  </div> <!-- Final Div Logueado-->
+
     <!-- Form Registro -->
     <form action="{{ path('user_new') }}" method="post" id="userRegistro">
         <h3 class="mb-3">Registro de Nuevos Usuarios</h3>
@@ -95,56 +166,16 @@
             </div>
     </form>
 
-  <!-- Div Usr Logueado -->
-    <div class="container mt-5" id="usrLogueado" style="display: none;">
-        <h3>Bienvenido!.</h3>
-        <br>
-        <div>
-          <h4>Gestionar Categorías</h4>
-        <form action="{{ path('category_index') }}" method="post" id="lstCategorias">
-            <select class="form-select" aria-label="Default select example" id="categorySelect">
-                <option selected disabled>Categorías</option>
-            </select>
-            <button type="button" class="btn btn-info mt-1" id="modifyCategoryBtn">Modificar</button>
-            <a  class="btn btn-danger mt-1">Eliminar</a>
-            <button type="button" class="btn btn-success mt-1" id="createCategoryBtn">Crear</button>
-        </form>
-        </div>
-        
-        <!-- Modal Categorías-->
-    <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="categoryModalLabel">Crear/Modificar Categoría</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-      <form id="categoryForm" method="post">
-        <div class="modal-body">
-            <div class="form-group">
-              <input type="text" class="form-control" id="categoryName" placeholder="Nombre Categoría" name="categoryName" required>
-            </div>
-            <div class="form-group">
-              <input type="text" class="form-control" id="categoryIcon" placeholder="Src del Ícono" name="categoryIcon">
-            </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-          <button type="submit" class="btn btn-primary" id="saveCategory" data-dismiss="modal">Guardar</button>
-        </div>
-      </form>
 
-      </div>
-    </div>
-    </div>
-  
-    </div>
+
 </div>
+
+<!--**********************************   SCRIPTS    ******************************************************************-->
+
+
 <!--Script Modal p/ Crear/Modificar Categorías-->
 <script>
-  document.addEventListener('DOMContentLoaded', (event) => {
+  document.addEventListener('DOMContentLoaded', async (event) => {
     const createCategoryBtn = document.getElementById('createCategoryBtn');
     const modifyCategoryBtn = document.getElementById('modifyCategoryBtn');
     const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
@@ -167,38 +198,70 @@
         categoryModal.show();
     });
 
-    modifyCategoryBtn.addEventListener('click', () => {
+   /* modifyCategoryBtn.addEventListener('click', () => {
         isEditing = true;
         categoryId = document.getElementById('categorySelect').value;
         frmModalCategory.action = categoryEditUrlBase.replace('ID_PLACEHOLDER', categoryId);
         categoryModalLabel.textContent = 'Modificar Categoría';
-        categoryNameInput.value = 'Modificar Nombre'; // Reemplazar con el valor real
-        categoryIconInput.value = 'Modificar Src Icono'; // Reemplazar con el valor real
+        categoryNameInput.value = '';
+        categoryIconInput.value = '';
         categoryModal.show();
-    });
+    });*/
+    modifyCategoryBtn.addEventListener('click', async () => {
+      isEditing = true;
+      categoryId = document.getElementById('categorySelect').value;
+      frmModalCategory.action = categoryEditUrlBase.replace('ID_PLACEHOLDER', categoryId);
+      categoryModalLabel.textContent = 'Modificar Categoría';
+
+      try {
+        const response = await fetch(`category/category/${categoryId}`, {
+          method: 'GET',
+          headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+          }
+          });
+          const data = await response.json();
+          if (data.status === 'success') {
+              categoryNameInput.value = data.category.name;
+              categoryIconInput.value = data.category.icon;
+          } else {
+              alert('Error al cargar los datos de la categoría');
+          }
+      } catch (error) {
+          console.error('Error:', error);
+      }
+
+      categoryModal.show();
+  });
 
     
-    frmModalCategory.addEventListener('submit', (event) => {
-      event.preventDefault(); // Para evitar el envío tradicional del formulario
-      const url = frmModalCategory.action;
-      const categoryName = categoryNameInput.value;
-      const categoryIcon = categoryIconInput.value;
-  
-      fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Requested-With': 'XMLHttpRequest'},
-          body: `categoryName=${encodeURIComponent(categoryName)}&categoryIcon=${encodeURIComponent(categoryIcon)}`})
-      .then(response => response.json())
-      .then(data => {
-          if (data.status === 'success') {
-              showMessage('Categoría registrada correctamente!', 'success');
-              categoryModal.hide();
-  
-              // Actualizar la interfaz sin recargarla
-              const categorySelect = document.getElementById('categorySelect');
-              if (isEditing) {
+    frmModalCategory.addEventListener('submit', async (event) => {
+        event.preventDefault(); 
+        const url = frmModalCategory.action;
+        const categoryName = categoryNameInput.value;
+        const categoryIcon = categoryIconInput.value;
+        const categoryId = document.getElementById('categorySelect').value;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `categoryName=${encodeURIComponent(categoryName)}&categoryIcon=${encodeURIComponent(categoryIcon)}&categoryID=${encodeURIComponent(categoryId)}`
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {                
+                categoryModal.hide();
+                categoryNameInput.value = ''; 
+                categoryIconInput.value = '';
+
+                // Actualizar la interfaz sin recargarla
+                const categorySelect = document.getElementById('categorySelect');
+                if (isEditing) {
                   // Si estás editando, actualiza la opción existente
                   const optionToUpdate = categorySelect.querySelector(`option[value="${categoryId}"]`);
                   if (optionToUpdate) {
@@ -208,22 +271,22 @@
               } else {
                   // Si estás creando una nueva categoría, añade una nueva opción
                   const newOption = document.createElement('option');
-                  newOption.value = data.newCategoryId; // Suponiendo que el servidor devuelve el ID de la nueva categoría
+                  newOption.value = data.newCategoryId; 
                   newOption.textContent = categoryName;
                   newOption.setAttribute('data-icon', categoryIcon);
-                  categorySelect.appendChild(newOption);
+                  categorySelect.appendChild(newOption); 
               }
-  
-          } else {
-              console.error(data.message);
-          }
-      })
-      .catch(error => {
-          console.error('Error:', error);
-      });
-  });
-  
-});   
+
+
+            } else {
+                console.error(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+});
+
 </script>
     
 <!--Script Login Usuarios-->
@@ -272,8 +335,8 @@
 
             if (data.logued) {
                 formLogin.style.display = 'none';
+                formRegistro.style.display = 'none';
                 divLogueado.style.display = 'block';
-                showMessage('Logueado exitosamente!', 'success');
             } else {
                 showMessage(data.message, 'danger');
                 formRegistro.style.display = 'none';
@@ -287,12 +350,19 @@
 });
     
 </script>
-<!--Script Lista Categorías-->
+
+<!--Script Lista Categorías y Eliminar-->
 <script>
   document.addEventListener('DOMContentLoaded', async function() {
       const categorySelect = document.getElementById('categorySelect');
       const categoryLstFrm = document.getElementById('lstCategorias');
-  
+      const deleteCategoryBtn = document.getElementById('deleteCategoryBtn');
+      const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+      const frmEliminar = document.getElementById('frmEliminar');
+      let categoryIdToDelete = null;
+
+      
+      // Load categories
       try {
           const response = await fetch(categoryLstFrm.action);
           const data = await response.json();
@@ -310,8 +380,94 @@
       } catch (error) {
           console.error('Error:', error);
       }
+  
+      // Open delete modal
+      deleteCategoryBtn.addEventListener('click', function() {
+          categoryIdToDelete = categorySelect.value;
+          if (categoryIdToDelete) {
+              deleteModal.show();
+          } else {
+              alert('Seleccione una categoría para eliminar.');
+          }
+      });
+      //Habilitar/Deshabilitar boton Eliminar
+      function updateDeleteButtonState() {
+        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+        if (selectedOption && selectedOption.id === 'defaultOption') {
+            deleteCategoryBtn.disabled = true;
+        } else {
+            deleteCategoryBtn.disabled = false;
+        }
+    }
+      categorySelect.addEventListener('change', updateDeleteButtonState);
+      updateDeleteButtonState();
+
+      //Boton Cerrar Sesion
+      document.getElementById('cerrarSesion').addEventListener('click', function() {
+        window.location.href = '/';
+    });
+
+
+      // Handle form submission for deletion
+      frmEliminar.addEventListener('submit', async function(event) {
+          event.preventDefault();
+          if (categoryIdToDelete) {
+              try {
+                  const response = await fetch(`/category/delete/${categoryIdToDelete}`, {
+                      method: 'DELETE',
+                      headers: {
+                          'X-Requested-With': 'XMLHttpRequest'
+                      }
+                  });
+                  const data = await response.json();
+                  if (data.status === 'success') {
+                      alert(data.message);
+                      deleteModal.hide();
+                      await loadCategories();
+                      updateDeleteButtonState();           
+                    } 
+                    else {
+                      alert('Error al eliminar la categoría.');
+                  }
+              } catch (error) {
+                  console.error('Error:', error);
+              }
+          }
+      });
   });
+  </script>
+
+<!--Script para recargar Select-->
+<script>
+  async function loadCategories() {
+    const categorySelect = document.getElementById('categorySelect');
+    const categoryLstFrm = document.getElementById('lstCategorias');
+    const deleteCategoryBtn = document.getElementById('deleteCategoryBtn');
+
+
+    try {
+        const response = await fetch(categoryLstFrm.action);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            // Limpiar el select antes de añadir las nuevas opciones
+            categorySelect.innerHTML = '<option selected disabled>Categorías</option>';
+            data.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
+            });
+
+        } else {
+            console.error('Error al cargar las categorías');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 </script>
+
   <!--Script Buscador
   <script>
     (function (document) {
@@ -391,6 +547,30 @@
   color: #721c24;
   background-color: #f8d7da;
   border-color: #f5c6cb;
+}
+
+.position-relative {
+  position: relative;
+}
+
+.position-absolute {
+  position: absolute;
+}
+
+.top-right {
+  top: 0;
+  right: 0;
+  margin: 10px;
+}
+a.btnC {
+  text-decoration: none; /* Elimina el subrayado */
+  color: inherit; /* Hereda el color del texto */
+  /*cursor: pointer;  Cambia el cursor a un puntero */
+  background: none; /* Elimina cualquier fondo */
+  border: none; /* Elimina cualquier borde */
+  padding: 0; /* Elimina el relleno */
+  margin: 0; /* Elimina el margen */
+  font: inherit;
 }
 
   </style>

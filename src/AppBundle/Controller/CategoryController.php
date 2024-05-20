@@ -47,8 +47,6 @@ class CategoryController extends Controller
      */
     public function newCategoryAction(Request $request)
     {
-        
-
         if ($request->isMethod('POST')){
             $categoryName = $request->request->get('categoryName');
             $categoryIcon = $request->request->get('categoryIcon');
@@ -61,9 +59,11 @@ class CategoryController extends Controller
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($category);
                 $em->flush();
-
+                $logued = true;
+                $newCategoryId = $category->getId(); 
                 $this->addFlash('success', 'Categoría registrada correctamente.');
-                return new JsonResponse(['status' => 'success', 'message' => 'Categoría creada correctamente.'], 200);
+                return new JsonResponse(['status' => 'success', 'logued' => $logued, 'newCategoryId' => $newCategoryId], 200);
+                
             }
         }
         
@@ -75,23 +75,6 @@ class CategoryController extends Controller
     }
 
     /**
-     * Finds and displays a category entity.
-     *
-     * @Route("/{id}", name="category_show")
-     * @Method("GET")
-     */
-    public function listCategoriesAction()
-    {
-        $categories = $this->getDoctrine()
-            ->getRepository(Category::class)
-            ->findAll();
-    
-        return $this->render('default/index.html.twig', [
-            'categories' => $categories
-        ]);
-    }
-
-    /**
      * Displays a form to edit an existing category entity.
      *
      * @Route("/{id}/edit", name="category_edit")
@@ -99,50 +82,67 @@ class CategoryController extends Controller
      */
     public function editCategoryAction(Request $request, $id)
     {
-        $em = $this->getDoctrine()->getManager();
+        if ($request->isMethod('POST')){
+            $categoryName = $request->request->get('categoryName');
+            $categoryIcon = $request->request->get('categoryIcon');
+            $categoryID = $request->request->get('categoryID');
+    
+            if ($categoryName != null) {
+
+                $em = $this->getDoctrine()->getManager();
         
-        $category = $em->getRepository(Category::class)->find($id);
+                $category = $em->getRepository(Category::class)->find($categoryID);
         
-        $category->setName($request->request->get('categoryName'));
-        $category->setIcon($request->request->get('categoryIcon'));
+                $category->setName($categoryName);
+                $category->setIcon($categoryIcon);
         
-        $em->flush();
+                $em->flush();
+            
+                $logued = true;
+                $this->addFlash('success', 'Categoría modificada correctamente.');
+                return new JsonResponse(['status' => 'success', 'logued' => $logued], 200);
+                
+            }
+        }
+        
+        else {
+            $this->addFlash('danger', 'Ocurrió un error. Inténtelo de nuevo.');
+            return new JsonResponse(['status' => 'error', 'message' => 'Faltan datos.'], 400);}
+
+        
 
     }
 
-    /**
+     /**
      * Deletes a category entity.
      *
-     * @Route("/{id}", name="category_delete")
+     * @Route("/delete/{id}", name="delete")
      * @Method("DELETE")
      */
     public function deleteAction(Request $request, Category $category)
     {
-        $form = $this->createDeleteForm($category);
-        $form->handleRequest($request);
+      
+        $em = $this->getDoctrine()->getManager();
+        $em->remove($category);
+        $em->flush();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($category);
-            $em->flush();
-        }
-
-        return $this->redirectToRoute('category_index');
+        return new JsonResponse(['status' => 'success', 'message' => 'Categoría eliminada correctamente.']);
     }
 
-    /**
-     * Creates a form to delete a category entity.
-     *
-     * @param Category $category The category entity
-     *
-     * @return \Symfony\Component\Form\Form The form
-     */
-    private function createDeleteForm(Category $category)
-    {
-        return $this->createFormBuilder()
-            ->setAction($this->generateUrl('category_delete', array('id' => $category->getId())))
-            ->setMethod('DELETE')
-            ->getForm()
-        ;
+ /** 
+ * @Route("/category/{id}", name="category_details")
+ * @Method("GET")
+ */
+public function getCategoryDetailsAction($id)
+{
+    $em = $this->getDoctrine()->getManager();
+    $category = $em->getRepository(Category::class)->find($id);
+
+    if (!$category) {
+        return new JsonResponse(['status' => 'error', 'message' => 'Categoría no encontrada'], 404);
     }
+
+    return new JsonResponse(['status' => 'success', 'category' => ['name' => $category->getName(), 'icon' => $category->getIcon()]]);
+}
+
 }
