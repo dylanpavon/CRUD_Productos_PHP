@@ -21,17 +21,16 @@
       <div>
         <h4>Gestionar Categorías</h4>
       <form action="{{ path('category_index') }}" method="post" id="lstCategorias">
-          <select class="form-select" aria-label="Default select example" id="categorySelect">
+          <select class="form-select mb-1" aria-label="Default select example" id="categorySelect">
               <option selected disabled id="defaultOption">Categorías</option>
           </select>
           <button type="button" class="btn btn-info mt-1" id="modifyCategoryBtn">Modificar</button>
           <button type="button"  class="btn btn-danger mt-1 delete-btn" id="deleteCategoryBtn">Eliminar</button>
           <button type="button" class="btn btn-success mt-1" id="createCategoryBtn">Crear</button>
       </form>
-
     </div>
-      
-      <!-- Modal Categorías-->
+     
+      <!-- Modal Crear/Modificar Categorías-->
   <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -166,6 +165,46 @@
             </div>
     </form>
 
+    <!--PRODUCTOS-->
+    <div class="container px-4 px-lg-5 mt-5">
+      <h4>Productos</h4>
+    <form action="" method="post" id="allProducts">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="floatingInput" placeholder="Ej: Bicicleta">
+        <label for="floatingInput">Buscar</label>
+      </div>
+      <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+        {% for p in products %}
+        <div class="col mb-5">
+            <div class="card h-100 w-100">
+                <!-- Product image-->
+                <img class="card-img-top" src="{{p.image}}" alt="{{p.name}}" style="object-fit: cover; background-position: center top;"/>
+                <!-- Product details-->
+                <div class="card-body p-4">
+                    <div class="text-center">
+                        <!-- Product name-->
+                        <h5 class="fw-bolder">{{p.name}}</h5>
+                        <!-- Product Category-->
+                        Categoría {{p.category}}
+                    </div>
+                </div>
+                <!-- Product actions-->
+                <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                    <div class="text-center"><a class="btn btn-outline-dark mt-auto">Seleccionar</a></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+      </div> 
+
+        <div class="justify-content-center mb-5" id="btnsProduct" style="display: none;">
+          <button type="button" class="btn btn-info mt-1" id="modifyProductBtn">Modificar</button>
+          <button type="button"  class="btn btn-danger mt-1 delete-btn" id="deleteProductBtn">Eliminar</button>
+          <button type="button" class="btn btn-success mt-1" id="createProductBtn">Crear</button>
+        </div>
+    </form>
+  </div>
+
 
 
 </div>
@@ -198,15 +237,7 @@
         categoryModal.show();
     });
 
-   /* modifyCategoryBtn.addEventListener('click', () => {
-        isEditing = true;
-        categoryId = document.getElementById('categorySelect').value;
-        frmModalCategory.action = categoryEditUrlBase.replace('ID_PLACEHOLDER', categoryId);
-        categoryModalLabel.textContent = 'Modificar Categoría';
-        categoryNameInput.value = '';
-        categoryIconInput.value = '';
-        categoryModal.show();
-    });*/
+
     modifyCategoryBtn.addEventListener('click', async () => {
       isEditing = true;
       categoryId = document.getElementById('categorySelect').value;
@@ -299,6 +330,7 @@
     const divLogueado = document.getElementById('usrLogueado');
     const messageContainer = document.getElementById('message-container');
     const nombreUsuario = document.getElementsByName('usernameL');
+    const btnsProduct = document.getElementById('btnsProduct'); 
 
     function showMessage(message, type) {
         messageContainer.inSnerHTML = `<div class="alert alert-${type}">${message} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
@@ -337,6 +369,7 @@
                 formLogin.style.display = 'none';
                 formRegistro.style.display = 'none';
                 divLogueado.style.display = 'block';
+                btnsProduct.style.display = 'block';
             } else {
                 showMessage(data.message, 'danger');
                 formRegistro.style.display = 'none';
@@ -468,49 +501,6 @@
 }
 </script>
 
-  <!--Script Buscador
-  <script>
-    (function (document) {
-      "buscador";
-
-      var LightTableFilter = (function (Arr) {
-        var _input;
-
-        function _onInputEvent(e) {
-          _input = e.target;
-          var tables = document.getElementsByClassName(
-            _input.getAttribute("data-table")
-          );
-          Arr.forEach.call(tables, function (table) {
-            Arr.forEach.call(table.tBodies, function (tbody) {
-              Arr.forEach.call(tbody.rows, _filter);
-            });
-          });
-        }
-
-        function _filter(row) {
-          var text = row.textContent.toLowerCase(),
-            val = _input.value.toLowerCase();
-          row.style.display = text.indexOf(val) === -1 ? "none" : "table-row";
-        }
-
-        return {
-          init: function () {
-            var inputs = document.getElementsByClassName("light-table-filter");
-            Arr.forEach.call(inputs, function (input) {
-              input.oninput = _onInputEvent;
-            });
-          },
-        };
-      })(Array.prototype);
-
-      document.addEventListener("readystatechange", function () {
-        if (document.readyState === "complete") {
-          LightTableFilter.init();
-        }
-      });
-    })(document);
-  </script>-->
 
   {% endblock %} 
   {% block stylesheets %}

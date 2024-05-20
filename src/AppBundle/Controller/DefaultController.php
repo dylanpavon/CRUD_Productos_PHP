@@ -16,13 +16,13 @@ class DefaultController extends Controller
      */
     public function indexAction(Request $request)
     {
-            // Verificar si el usuario está autenticado
-    $isLogged = $this->getUser() !== null;
+        $em = $this->getDoctrine()->getManager();
 
-    // Puedes pasar $isLogged a tu plantilla Twig para utilizarlo allí
-    return $this->render('default/index.html.twig', [
-        'isLogged' => $isLogged
-    ]);
+        $products = $em->getRepository('AppBundle:Product')->findAll();
+
+        return $this->render('default/index.html.twig', array(
+            'products' => $products,
+        ));
     }
 
 }
