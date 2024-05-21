@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %} 
 {% block body %}
-<div class="container mt-5">
+<div class="container px-4 px-lg-5 mt-5">
     {% for label, messages in app.session.flashBag.all() %}
                 {% for message in messages %}
                     <div class="alert alert-{{ label }} alert-dismissible fade show">
@@ -14,7 +14,7 @@
   </div>
 
     <!-- Div Usr Logueado -->
-    <div class="container mt-5" id="usrLogueado" style="display: none;">
+    <div class="container px-4 px-lg-5 mt-5" id="usrLogueado" style="display: none;">
       <button  type="button" id="cerrarSesion" class="btn btn-secondary position-absolute top-right" id="cornerButton">Cerrar sesión</button>
       <h3>Bienvenido!</h3>
       <br>
@@ -26,7 +26,7 @@
           </select>
           <button type="button" class="btn btn-info mt-1" id="modifyCategoryBtn">Modificar</button>
           <button type="button"  class="btn btn-danger mt-1 delete-btn" id="deleteCategoryBtn">Eliminar</button>
-          <button type="button" class="btn btn-success mt-1" id="createCategoryBtn">Crear</button>
+          <button type="button" class="btn btn-success mt-1" id="createCategoryBtn">Crear Nueva</button>
       </form>
     </div>
      
@@ -59,6 +59,43 @@
   </div>
   </div>
 
+    <!-- Modal Crear/Modificar Productos-->
+        <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">Crear/Modificar Categoría</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+            <form id="productForm" method="POST">
+              <div class="modal-body">
+                  <div class="form-group">
+                    <input type="text" class="form-control" id="productName" placeholder="Nombre Producto" name="productName" required>
+                  </div>
+                  <div class="form-group">
+                    <select class="form-select mb-1" aria-label="Default select example" id="productCategorySelect">
+                      <option selected disabled id="defaultOption">Categorías</option>
+                      {% for p in products %}
+                      <option value="{{p.category.id}}">{{p.category.name}}</option>
+                      {% endfor %}
+                  </select>
+                  </div>
+                  <div class="form-group">
+                    <input type="text" class="form-control" id="productImg" placeholder="Src de la Imagen" name="productImg">
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="submit" class="btn btn-primary" id="saveProduct">Guardar</button>
+              </div>
+            </form>
+        
+            </div>
+          </div>
+          </div>
+
   <!--Modal Eliminar-->
   <form action="" id="frmEliminar" method="post">
     <div class="modal" tabindex="-1" id="deleteModal">
@@ -83,7 +120,8 @@
   </div> <!-- Final Div Logueado-->
 
     <!-- Form Registro -->
-    <form action="{{ path('user_new') }}" method="post" id="userRegistro">
+    <div class="container px-4 px-lg-5 mt-5">
+      <form action="{{ path('user_new') }}" method="post" id="userRegistro">
         <h3 class="mb-3">Registro de Nuevos Usuarios</h3>
         <div class="mb-3 row">
             <label>Email</label>
@@ -129,9 +167,12 @@
                 <button class="btn btn-danger mb-3 logueado">Ya tengo Cuenta</button>
             </div>
     </form>
+    </div>
+
 
     <!-- Form Login -->
-    <form action="{{ path('user_login') }}" method="post" id="userLogin" style="display: none;">
+    <div class="container px-4 px-lg-5 mt-5">
+      <form action="{{ path('user_login') }}" method="post" id="userLogin" style="display: none;">
         <h3 class="mb-3">Ingreso Usuarios Registrados</h3>
         
             <div class="mb-3 row">
@@ -164,44 +205,47 @@
                 <button class="btn btn-danger mb-3 volver">No tengo Cuenta</button>
             </div>
     </form>
+    </div>
+
 
     <!--PRODUCTOS-->
     <div class="container px-4 px-lg-5 mt-5">
       <h4>Productos</h4>
     <form action="" method="post" id="allProducts">
-      <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="floatingInput" placeholder="Ej: Bicicleta">
+      <div class="form-floating">
+        <input type="text" class="form-control" id="productInput" placeholder="Ej: Bicicleta">
         <label for="floatingInput">Buscar</label>
       </div>
-      <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+      <div class="mb-5" id="btnsProduct" style="display: none;">
+        <button type="button" class="btn btn-success mt-1" id="createProductBtn">Crear Nuevo</button>
+      </div>
+      <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-3">
         {% for p in products %}
-        <div class="col mb-5">
-            <div class="card h-100 w-100">
+        <div class="col mb-5 product-card" value="{{p.id}}" id="productSelected">
+            <div class="card h-60">
                 <!-- Product image-->
-                <img class="card-img-top" src="{{p.image}}" alt="{{p.name}}" style="object-fit: cover; background-position: center top;"/>
+                <div class="zoomable-image-container">
+                  <img id="productImg" class="card-img-top fixed-size-img zoomable-image" src="{{p.image}}" alt="{{p.name}}" style="object-fit: cover; background-position: center top;"/>
+
+                </div>
                 <!-- Product details-->
                 <div class="card-body p-4">
                     <div class="text-center">
                         <!-- Product name-->
-                        <h5 class="fw-bolder">{{p.name}}</h5>
+                        <h5 id="productName" class="fw-bolder product-name" value="">{{p.name}}</h5>
                         <!-- Product Category-->
-                        Categoría {{p.category}}
+                        <p id="productCategoryName" value="">{{p.category.name}}</p>
                     </div>
                 </div>
                 <!-- Product actions-->
-                <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                    <div class="text-center"><a class="btn btn-outline-dark mt-auto">Seleccionar</a></div>
+                <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center divProductBM" id="divProductBM" style="display: none;">
+                  <button type="button" class="btn btn-info mt-1" id="modifyProductBtn">Modificar</button>
+                  <button type="button"  class="btn btn-danger mt-1 delete-btn" id="deleteProductBtn">Eliminar</button>
                 </div>
             </div>
         </div>
         {% endfor %}
       </div> 
-
-        <div class="justify-content-center mb-5" id="btnsProduct" style="display: none;">
-          <button type="button" class="btn btn-info mt-1" id="modifyProductBtn">Modificar</button>
-          <button type="button"  class="btn btn-danger mt-1 delete-btn" id="deleteProductBtn">Eliminar</button>
-          <button type="button" class="btn btn-success mt-1" id="createProductBtn">Crear</button>
-        </div>
     </form>
   </div>
 
@@ -319,6 +363,149 @@
 });
 
 </script>
+
+<!--Script Modal p/ Crear/Modificar Productos-->
+<script>
+  document.addEventListener('DOMContentLoaded', async (event) => {
+    const createProductBtn = document.getElementById('createProductBtn');
+    const modifyProductBtn = document.getElementById('modifyProductBtn');
+    const productModal = new bootstrap.Modal(document.getElementById('productModal'));
+    const productModalLabel = document.getElementById('productModalLabel');
+    const productNameInput = document.getElementById('productName');
+    const productImgInput = document.getElementById('productImg');
+    const productCategory = document.getElementById('productCategorySelect').value;
+    const saveProductBtn = document.getElementById('saveProduct');
+    const frmModalProduct = document.getElementById('productForm');
+    let isEditing = false;
+    let productId = null;
+
+    const productEditUrlBase = "{{ path('product_edit', { 'id': 'ID_PLACEHOLDER' }) }}";
+    const productNewUrl = "{{ path('product_new') }}";
+
+    createProductBtn.addEventListener('click', () => {
+        isEditing = false;
+        productId = null;
+        frmModalProduct.action = productNewUrl;
+        productModalLabel.textContent = 'Crear Producto';
+        productModal.show();
+    });
+
+
+    modifyProductBtn.addEventListener('click', async () => {
+      isEditing = true;
+      productId = document.getElementById('productSelected').value;
+      frmModalProduct.action = productEditUrlBase.replace('ID_PLACEHOLDER', productId);
+      productModalLabel.textContent = 'Modificar Producto';
+
+      //Trae los datos del Producto en cuestión
+      try {
+        const response = await fetch(`product/product/${productId}`, {
+          method: 'GET',
+          headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+          }
+          });
+          const data = await response.json();
+          if (data.status === 'success') {
+              productNameInput.value = data.product.name;
+              productImgInput.value = data.product.image;
+              productCategory.value = data.product.category.name;
+          } else {
+              alert('Error al cargar los datos del producto');
+          }
+      } catch (error) {
+          console.error('Error:', error);
+      }
+
+      productModal.show();
+  });
+
+    
+  frmModalProduct.addEventListener('submit', async (event) => {
+        event.preventDefault(); 
+        const url = frmModalProduct.action;
+        const productName = productNameInput.value;
+        const productImg = productImgInput.value;
+        const productCategory = productCategory.value;
+        const productId = document.getElementById('productSelected').value;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `productName=${encodeURIComponent(productName)}&productImg=${encodeURIComponent(productImg)}&productCategory=${encodeURIComponent(productCategory)}`
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {                
+                productModal.hide();
+                productNameInput.value = ''; 
+                productImgInput.value = '';
+
+                // Actualizar la interfaz sin recargarla
+                const productSelected = document.getElementById('productSelected');
+                const imgProduct = document.getElementById('productImg');
+                const nameProduct = document.getElementById('productName');
+                const categoryProduct = document.getElementById('productCategoryName');
+
+                if (isEditing) {
+                  // Si estás editando, actualiza la opción existente
+                  const divToUpdate = productSelected.querySelector(`div[value="${productId}"]`);
+
+                  if (divToUpdate) {
+                      imgProduct.setAttribute('src', productImg);
+                      nameProduct.textContent = productName;
+                      categoryProduct.textContent = productCategory;
+                  }
+              } else {
+                // Si estás creando un nuevo producto, añade una nueva opción
+                const productContainer = document.querySelector('.row');
+                const newProductDiv = document.createElement('div');
+                newProductDiv.classList.add('col', 'mb-5', 'product-card');
+                newProductDiv.setAttribute('value', data.product.id);
+                newProductDiv.id = 'productSelected';
+            
+                newProductDiv.innerHTML = `
+                    <div class="card h-60">
+                        <!-- Product image-->
+                        <div class="zoomable-image-container">
+                            <img id="productImg" class="card-img-top fixed-size-img zoomable-image" src="${data.product.image}" alt="${data.product.name}" style="object-fit: cover; background-position: center top;"/>
+                        </div>
+                        <!-- Product details-->
+                        <div class="card-body p-4">
+                            <div class="text-center">
+                                <!-- Product name-->
+                                <h5 id="productName" class="fw-bolder product-name" value="${data.product.name}"></h5>
+                                <!-- Product Category-->
+                                <p id="productCategoryName" value="${data.product.category.name}"></p>
+                            </div>
+                        </div>
+                        <!-- Product actions-->
+                        <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center divProductBM" id="divProductBM" style="display: none;">
+                            <button type="button" class="btn btn-info mt-1" id="modifyProductBtn">Modificar</button>
+                            <button type="button" class="btn btn-danger mt-1 delete-btn" id="deleteProductBtn">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            
+                productContainer.appendChild(newProductDiv);
+            }
+
+
+            } else {
+                console.error(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+});
+
+</script>
     
 <!--Script Login Usuarios-->
 <script>
@@ -328,13 +515,10 @@
     const formRegistro = document.getElementById('userRegistro');
     const formLogin = document.getElementById('userLogin');
     const divLogueado = document.getElementById('usrLogueado');
-    const messageContainer = document.getElementById('message-container');
     const nombreUsuario = document.getElementsByName('usernameL');
-    const btnsProduct = document.getElementById('btnsProduct'); 
+    const btnsProduct = document.getElementById('btnsProduct');
+    const btnsProductBM = document.getElementById('divProductBM') 
 
-    function showMessage(message, type) {
-        messageContainer.inSnerHTML = `<div class="alert alert-${type}">${message} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
-    }
 
     if (btnLogueado) {
         btnLogueado.addEventListener('click', function(event) {
@@ -370,6 +554,9 @@
                 formRegistro.style.display = 'none';
                 divLogueado.style.display = 'block';
                 btnsProduct.style.display = 'block';
+                document.querySelectorAll('.divProductBM').forEach(function(div) {
+                  div.style.display = 'block';
+              });
             } else {
                 showMessage(data.message, 'danger');
                 formRegistro.style.display = 'none';
@@ -390,6 +577,7 @@
       const categorySelect = document.getElementById('categorySelect');
       const categoryLstFrm = document.getElementById('lstCategorias');
       const deleteCategoryBtn = document.getElementById('deleteCategoryBtn');
+      const modifyCategoryBtn = document.getElementById('modifyCategoryBtn');
       const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
       const frmEliminar = document.getElementById('frmEliminar');
       let categoryIdToDelete = null;
@@ -423,13 +611,15 @@
               alert('Seleccione una categoría para eliminar.');
           }
       });
-      //Habilitar/Deshabilitar boton Eliminar
+      //Habilitar/Deshabilitar boton Eliminar y Modificar
       function updateDeleteButtonState() {
         const selectedOption = categorySelect.options[categorySelect.selectedIndex];
         if (selectedOption && selectedOption.id === 'defaultOption') {
             deleteCategoryBtn.disabled = true;
+            modifyCategoryBtn.disabled = true;
         } else {
             deleteCategoryBtn.disabled = false;
+            modifyCategoryBtn.disabled = false;
         }
     }
       categorySelect.addEventListener('change', updateDeleteButtonState);
@@ -500,7 +690,65 @@
     }
 }
 </script>
+<!--Script para Buscador-->
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+      const searchInput = document.getElementById('productInput');
+      const productCards = document.querySelectorAll('.product-card');
 
+      searchInput.addEventListener('input', () => {
+          const searchTerm = searchInput.value.toLowerCase();
+          productCards.forEach(card => {
+              const productName = card.querySelector('.product-name').textContent.toLowerCase();
+              if (productName.includes(searchTerm)) {
+                  card.style.display = 'block';
+              } else {
+                  card.style.display = 'none';
+              }
+          });
+      });
+  });
+</script>
+
+<!--Script para Mensajes-->
+<script>
+  function showMessage(message, type) {
+    const messageContainer = document.getElementById('message-container');
+    messageContainer.innerHTML = `<div class="alert alert-${type}">${message} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
+}
+</script>
+
+<!-- Script Zoom imgs-->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const zoomableImages =
+      document.querySelectorAll(".zoomable-image");
+
+    zoomableImages.forEach(function (image) {
+      image.addEventListener("click", function () {
+        const zoomedContainer = document.createElement("div");
+        zoomedContainer.classList.add("zoomed-image-container");
+
+        const zoomedImage = document.createElement("img");
+        zoomedImage.classList.add("zoomed-image");
+        zoomedImage.src = image.src;
+        zoomedImage.alt = image.alt;
+
+        zoomedContainer.appendChild(zoomedImage);
+        document.body.appendChild(zoomedContainer);
+
+        zoomedContainer.addEventListener("click", function () {
+          zoomedContainer.remove();
+        });
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") {
+            zoomedContainer.remove();
+          }
+        });
+      });
+    });
+  });
+</script>
 
   {% endblock %} 
   {% block stylesheets %}
@@ -562,7 +810,33 @@ a.btnC {
   margin: 0; /* Elimina el margen */
   font: inherit;
 }
+.fixed-size-img {
+  width: 100%;
+  height: 200px; /* Ajusta esta altura según tus necesidades */
+  object-fit: cover;
+}
+.zoomable-image-container {
+  cursor: zoom-in; /* Cambia el cursor al pasar sobre la imagen */
+}
 
+.zoomed-image-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1050;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.zoomed-image {
+  max-width: 90%;
+  max-height: 90%;
+}
   </style>
   {% endblock %}
 

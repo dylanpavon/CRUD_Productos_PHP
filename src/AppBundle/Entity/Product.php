@@ -28,10 +28,9 @@ class Product
      */
     private $name;
 
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="category", type="integer")
+     /**
+     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Category")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $category;
 
