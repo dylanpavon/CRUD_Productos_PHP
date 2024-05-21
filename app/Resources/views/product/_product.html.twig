@@ -1,0 +1,22 @@
+<div class="col mb-5 product-card" value="{{ product.id }}" id="productSelected">
+    <div class="card h-60">
+        <!-- Product image-->
+        <div class="zoomable-image-container">
+            <img id="productImg" class="card-img-top fixed-size-img zoomable-image" src="{{ product.image }}" alt="{{ product.name }}" style="object-fit: cover; background-position: center top;"/>
+        </div>
+        <!-- Product details-->
+        <div class="card-body p-4">
+            <div class="text-center">
+                <!-- Product name-->
+                <h5 id="productName" class="fw-bolder product-name" value="">{{ product.name }}</h5>
+                <!-- Product Category-->
+                <p id="productCategoryName" value="">{{ product.category.name }}</p>
+            </div>
+        </div>
+        <!-- Product actions-->
+        <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center divProductBM" id="divProductBM" style="display: none;">
+            <button type="button" class="btn btn-info mt-1" id="modifyProductBtn">Modificar</button>
+            <button type="button" class="btn btn-danger mt-1 delete-btn" id="deleteProductBtn">Eliminar</button>
+        </div>
+    </div>
+</div>

@@ -367,13 +367,13 @@
 <!--Script Modal p/ Crear/Modificar Productos-->
 <script>
   document.addEventListener('DOMContentLoaded', async (event) => {
+    
     const createProductBtn = document.getElementById('createProductBtn');
-    const modifyProductBtn = document.getElementById('modifyProductBtn');
     const productModal = new bootstrap.Modal(document.getElementById('productModal'));
     const productModalLabel = document.getElementById('productModalLabel');
     const productNameInput = document.getElementById('productName');
     const productImgInput = document.getElementById('productImg');
-    const productCategory = document.getElementById('productCategorySelect').value;
+    const productCategorySelect = document.getElementById('productCategorySelect');
     const saveProductBtn = document.getElementById('saveProduct');
     const frmModalProduct = document.getElementById('productForm');
     let isEditing = false;
@@ -381,6 +381,7 @@
 
     const productEditUrlBase = "{{ path('product_edit', { 'id': 'ID_PLACEHOLDER' }) }}";
     const productNewUrl = "{{ path('product_new') }}";
+    const productDetailsUrlBase = "{{ path('product_details', { 'id': 'ID_PLACEHOLDER' }) }}";
 
     createProductBtn.addEventListener('click', () => {
         isEditing = false;
@@ -390,44 +391,45 @@
         productModal.show();
     });
 
+    document.querySelectorAll('.product-card').forEach(card => {
+      const modifyProductBtn = card.querySelector('#modifyProductBtn');
+      
+      modifyProductBtn.addEventListener('click', async () => {
+          isEditing = true;
+          productId = card.getAttribute('value');
+          frmModalProduct.action = productEditUrlBase.replace('ID_PLACEHOLDER', productId);
+          productModalLabel.textContent = 'Modificar Producto';
 
-    modifyProductBtn.addEventListener('click', async () => {
-      isEditing = true;
-      productId = document.getElementById('productSelected').value;
-      frmModalProduct.action = productEditUrlBase.replace('ID_PLACEHOLDER', productId);
-      productModalLabel.textContent = 'Modificar Producto';
-
-      //Trae los datos del Producto en cuestión
-      try {
-        const response = await fetch(`product/product/${productId}`, {
-          method: 'GET',
-          headers: {
-              'X-Requested-With': 'XMLHttpRequest'
+          // Trae los datos del Producto en cuestión
+          try {
+              const response = await fetch(productDetailsUrlBase.replace('ID_PLACEHOLDER', productId), {
+                  method: 'GET',
+                  headers: {
+                      'X-Requested-With': 'XMLHttpRequest'
+                  }
+              });
+              const data = await response.json();
+              if (data.status === 'success') {
+                  productNameInput.value = data.product.name;
+                  productImgInput.value = data.product.image;
+                  productCategorySelect.value = data.product.category.id;
+              } else {
+                  alert('Error al cargar los datos del producto');
+              }
+          } catch (error) {
+              console.error('Error:', error);
           }
-          });
-          const data = await response.json();
-          if (data.status === 'success') {
-              productNameInput.value = data.product.name;
-              productImgInput.value = data.product.image;
-              productCategory.value = data.product.category.name;
-          } else {
-              alert('Error al cargar los datos del producto');
-          }
-      } catch (error) {
-          console.error('Error:', error);
-      }
 
-      productModal.show();
+          productModal.show();
+      });
   });
 
-    
-  frmModalProduct.addEventListener('submit', async (event) => {
+    frmModalProduct.addEventListener('submit', async (event) => {
         event.preventDefault(); 
         const url = frmModalProduct.action;
         const productName = productNameInput.value;
         const productImg = productImgInput.value;
-        const productCategory = productCategory.value;
-        const productId = document.getElementById('productSelected').value;
+        const productCategory = productCategorySelect.value;
 
         try {
             const response = await fetch(url, {
@@ -446,56 +448,44 @@
                 productNameInput.value = ''; 
                 productImgInput.value = '';
 
-                // Actualizar la interfaz sin recargarla
-                const productSelected = document.getElementById('productSelected');
-                const imgProduct = document.getElementById('productImg');
-                const nameProduct = document.getElementById('productName');
-                const categoryProduct = document.getElementById('productCategoryName');
-
                 if (isEditing) {
-                  // Si estás editando, actualiza la opción existente
-                  const divToUpdate = productSelected.querySelector(`div[value="${productId}"]`);
+                    const productCard = document.querySelector(`.product-card[value="${productId}"]`);
+                    productCard.querySelector('#productImg').src = productImg;
+                    productCard.querySelector('#productName').textContent = productName;
+                    productCard.querySelector('#productCategoryName').textContent = productCategorySelect.options[productCategorySelect.selectedIndex].text;
+                } else {
+                    const productContainer = document.querySelector('.row');
+                    productContainer.insertAdjacentHTML('beforeend', data.productHtml);
+                    const newProductCard = productContainer.querySelector(`.product-card[value="${data.newProductId}"]`);
 
-                  if (divToUpdate) {
-                      imgProduct.setAttribute('src', productImg);
-                      nameProduct.textContent = productName;
-                      categoryProduct.textContent = productCategory;
-                  }
-              } else {
-                // Si estás creando un nuevo producto, añade una nueva opción
-                const productContainer = document.querySelector('.row');
-                const newProductDiv = document.createElement('div');
-                newProductDiv.classList.add('col', 'mb-5', 'product-card');
-                newProductDiv.setAttribute('value', data.product.id);
-                newProductDiv.id = 'productSelected';
-            
-                newProductDiv.innerHTML = `
-                    <div class="card h-60">
-                        <!-- Product image-->
-                        <div class="zoomable-image-container">
-                            <img id="productImg" class="card-img-top fixed-size-img zoomable-image" src="${data.product.image}" alt="${data.product.name}" style="object-fit: cover; background-position: center top;"/>
-                        </div>
-                        <!-- Product details-->
-                        <div class="card-body p-4">
-                            <div class="text-center">
-                                <!-- Product name-->
-                                <h5 id="productName" class="fw-bolder product-name" value="${data.product.name}"></h5>
-                                <!-- Product Category-->
-                                <p id="productCategoryName" value="${data.product.category.name}"></p>
-                            </div>
-                        </div>
-                        <!-- Product actions-->
-                        <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center divProductBM" id="divProductBM" style="display: none;">
-                            <button type="button" class="btn btn-info mt-1" id="modifyProductBtn">Modificar</button>
-                            <button type="button" class="btn btn-danger mt-1 delete-btn" id="deleteProductBtn">Eliminar</button>
-                        </div>
-                    </div>
-                `;
-            
-                productContainer.appendChild(newProductDiv);
-            }
+                    newProductCard.querySelector('#modifyProductBtn').addEventListener('click', async () => {
+                        isEditing = true;
+                        productId = newProductCard.getAttribute('value');
+                        frmModalProduct.action = productEditUrlBase.replace('ID_PLACEHOLDER', productId);
+                        productModalLabel.textContent = 'Modificar Producto';
 
+                        try {
+                            const response = await fetch(`product/product/${productId}`, {
+                                method: 'GET',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            });
+                            const data = await response.json();
+                            if (data.status === 'success') {
+                                productNameInput.value = data.product.name;
+                                productImgInput.value = data.product.image;
+                                productCategorySelect.value = data.product.category.id;
+                            } else {
+                                alert('Error al cargar los datos del producto');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                        }
 
+                        productModal.show();
+                    });
+                }
             } else {
                 console.error(data.message);
             }
@@ -659,6 +649,53 @@
       });
   });
   </script>
+
+<!--Script para Eliminar Productos-->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+      const frmEliminar = document.getElementById('frmEliminar');
+      let productIdToDelete = null;
+
+      // Add event listeners to all delete buttons
+      document.querySelectorAll('.delete-btn').forEach(button => {
+          button.addEventListener('click', function(event) {
+              productIdToDelete = event.target.closest('.product-card').getAttribute('value');
+              if (productIdToDelete) {
+                  deleteModal.show();
+              } else {
+                  alert('Seleccione un producto para eliminar.');
+              }
+          });
+      });
+
+      // Handle form submission for deletion
+      frmEliminar.addEventListener('submit', async function(event) {
+          event.preventDefault();
+          if (productIdToDelete) {
+              try {
+                  const response = await fetch(`/product/delete/${productIdToDelete}`, {
+                      method: 'DELETE',
+                      headers: {
+                          'X-Requested-With': 'XMLHttpRequest'
+                      }
+                  });
+                  const data = await response.json();
+                  if (data.status === 'success') {
+                      alert(data.message);
+                      deleteModal.hide();
+                      // Remove the product card from the DOM
+                      document.querySelector(`.product-card[value="${productIdToDelete}"]`).remove();
+                  } else {
+                      alert('Error al eliminar el producto.');
+                  }
+              } catch (error) {
+                  console.error('Error:', error);
+              }
+          }
+      });
+  });
+</script>
 
 <!--Script para recargar Select-->
 <script>

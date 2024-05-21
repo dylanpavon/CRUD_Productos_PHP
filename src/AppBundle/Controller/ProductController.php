@@ -3,135 +3,133 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Product;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use AppBundle\Entity\Category;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * Product controller.
- *
- * @Route("product")
- */
 class ProductController extends Controller
 {
     /**
-     * Lists all product entities.
-     *
-     * @Route("/", name="product_index")
-     * @Method("GET")
-     */
-    public function indexAction()
-    {
-        $em = $this->getDoctrine()->getManager();
-
-        $products = $em->getRepository('AppBundle:Product')->findAll();
-
-        return $this->render('default/index.html.twig', array(
-            'products' => $products,
-        ));
-    }
-
-    /**
      * Creates a new product entity.
      *
-     * @Route("/new", name="product_new")
+     * @Route("/product/new", name="product_new")
      * @Method({"GET", "POST"})
      */
-    public function newAction(Request $request)
+    public function newProductAction(Request $request)
     {
-        $product = new Product();
-        $form = $this->createForm('AppBundle\Form\ProductType', $product);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($product);
-            $em->flush();
-
-            return $this->redirectToRoute('product_show', array('id' => $product->getId()));
+        if ($request->isMethod('POST')){
+            $productName = $request->request->get('productName');
+            $productImg = $request->request->get('productImg');
+            $categoryId = $request->request->get('productCategory');
+    
+            if ($productName != null) {
+                $em = $this->getDoctrine()->getManager();
+                $category = $em->getRepository(Category::class)->find($categoryId);
+    
+                if (!$category) {
+                    return new JsonResponse(['status' => 'error', 'message' => 'Categoría no encontrada'], 400);
+                }
+    
+                $product = new Product();
+                $product->setName($productName);
+                $product->setImage($productImg);
+                $product->setCategory($category);
+    
+                $em->persist($product);
+                $em->flush();
+                $newProductId = $product->getId();
+    
+                $this->addFlash('success', 'Producto registrado correctamente.');
+    
+                $productHtml = $this->renderView('product/_product.html.twig', ['product' => $product]);
+    
+                return new JsonResponse(['status' => 'success', 'newProductId' => $newProductId, 'productHtml' => $productHtml], 200);
+            } else {
+                return new JsonResponse(['status' => 'error', 'message' => 'Faltan datos.'], 400);
+            }
         }
-
-        return $this->render('product/new.html.twig', array(
-            'product' => $product,
-            'form' => $form->createView(),
-        ));
     }
-
-    /**
-     * Finds and displays a product entity.
-     *
-     * @Route("/{id}", name="product_show")
-     * @Method("GET")
-     */
-    public function showAction(Product $product)
-    {
-        $deleteForm = $this->createDeleteForm($product);
-
-        return $this->render('product/show.html.twig', array(
-            'product' => $product,
-            'delete_form' => $deleteForm->createView(),
-        ));
-    }
+    
 
     /**
      * Displays a form to edit an existing product entity.
      *
-     * @Route("/{id}/edit", name="product_edit")
+     * @Route("/product/{id}/edit", name="product_edit")
      * @Method({"GET", "POST"})
      */
-    public function editAction(Request $request, Product $product)
+    public function editProductAction(Request $request, $id)
     {
-        $deleteForm = $this->createDeleteForm($product);
-        $editForm = $this->createForm('AppBundle\Form\ProductType', $product);
-        $editForm->handleRequest($request);
+        if ($request->isMethod('POST')){
+            $productName = $request->request->get('productName');
+            $productImg = $request->request->get('productImg');
+            $categoryId = $request->request->get('productCategory');
+    
+            if ($productName != null) {
+                $em = $this->getDoctrine()->getManager();
+        
+                $product = $em->getRepository(Product::class)->find($id);
+                $category = $em->getRepository(Category::class)->find($categoryId);
 
-        if ($editForm->isSubmitted() && $editForm->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+                if (!$product || !$category) {
+                    return new JsonResponse(['status' => 'error', 'message' => 'Producto o Categoría no encontrados'], 400);
+                }
 
-            return $this->redirectToRoute('product_edit', array('id' => $product->getId()));
+                $product->setName($productName);
+                $product->setImage($productImg);
+                $product->setCategory($category);
+        
+                $em->flush();
+            
+                $this->addFlash('success', 'Producto modificado correctamente.');
+                return new JsonResponse(['status' => 'success'], 200);
+                
+            } else {
+                return new JsonResponse(['status' => 'error', 'message' => 'Faltan datos.'], 400);
+            }
         }
-
-        return $this->render('product/edit.html.twig', array(
-            'product' => $product,
-            'edit_form' => $editForm->createView(),
-            'delete_form' => $deleteForm->createView(),
-        ));
     }
 
     /**
      * Deletes a product entity.
      *
-     * @Route("/{id}", name="product_delete")
+     * @Route("/product/delete/{id}", name="product_delete")
      * @Method("DELETE")
      */
-    public function deleteAction(Request $request, Product $product)
+    public function deleteProductAction(Request $request, Product $product)
     {
-        $form = $this->createDeleteForm($product);
-        $form->handleRequest($request);
+        $em = $this->getDoctrine()->getManager();
+        $em->remove($product);
+        $em->flush();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($product);
-            $em->flush();
-        }
-
-        return $this->redirectToRoute('product_index');
+        return new JsonResponse(['status' => 'success', 'message' => 'Producto eliminado correctamente.']);
     }
 
-    /**
-     * Creates a form to delete a product entity.
-     *
-     * @param Product $product The product entity
-     *
-     * @return \Symfony\Component\Form\Form The form
+    /** 
+     * @Route("/product/{id}", name="product_details")
+     * @Method("GET")
      */
-    private function createDeleteForm(Product $product)
+    public function getProductDetailsAction($id)
     {
-        return $this->createFormBuilder()
-            ->setAction($this->generateUrl('product_delete', array('id' => $product->getId())))
-            ->setMethod('DELETE')
-            ->getForm()
-        ;
+        $em = $this->getDoctrine()->getManager();
+        $product = $em->getRepository(Product::class)->find($id);
+
+        if (!$product) {
+            return new JsonResponse(['status' => 'error', 'message' => 'Producto no encontrado'], 404);
+        }
+
+        return new JsonResponse([
+            'status' => 'success', 
+            'product' => [
+                'name' => $product->getName(), 
+                'image' => $product->getImage(),
+                'category' => [
+                    'id' => $product->getCategory()->getId(),
+                    'name' => $product->getCategory()->getName()
+                ]
+            ]
+        ]);
     }
 }
