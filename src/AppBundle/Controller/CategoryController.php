@@ -61,14 +61,14 @@ class CategoryController extends Controller
                 $em->flush();
                 $logued = true;
                 $newCategoryId = $category->getId(); 
-                $this->addFlash('success', 'Categoría registrada correctamente.');
+                //$this->addFlash('success', 'Categoría registrada correctamente.');
                 return new JsonResponse(['status' => 'success', 'logued' => $logued, 'newCategoryId' => $newCategoryId], 200);
                 
             }
         }
         
         else {
-            $this->addFlash('danger', 'Ocurrió un error. Inténtelo de nuevo.');
+            //$this->addFlash('danger', 'Ocurrió un error. Inténtelo de nuevo.');
             return new JsonResponse(['status' => 'error', 'message' => 'Faltan datos.'], 400);}
 
 
@@ -99,14 +99,14 @@ class CategoryController extends Controller
                 $em->flush();
             
                 $logued = true;
-                $this->addFlash('success', 'Categoría modificada correctamente.');
+                //$this->addFlash('success', 'Categoría modificada correctamente.');
                 return new JsonResponse(['status' => 'success', 'logued' => $logued], 200);
                 
             }
         }
         
         else {
-            $this->addFlash('danger', 'Ocurrió un error. Inténtelo de nuevo.');
+            //$this->addFlash('danger', 'Ocurrió un error. Inténtelo de nuevo.');
             return new JsonResponse(['status' => 'error', 'message' => 'Faltan datos.'], 400);}
 
         

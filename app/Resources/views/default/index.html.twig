@@ -76,11 +76,8 @@
                   </div>
                   <div class="form-group">
                     <select class="form-select mb-1" aria-label="Default select example" id="productCategorySelect">
-                      <option selected disabled id="defaultOption">Categorías</option>
-                      {% for p in products %}
-                      <option value="{{p.category.id}}">{{p.category.name}}</option>
-                      {% endfor %}
-                  </select>
+                        <option selected disabled id="defaultOption">Categorías</option>
+                    </select>
                   </div>
                   <div class="form-group">
                     <input type="text" class="form-control" id="productImg" placeholder="Src de la Imagen" name="productImg">
@@ -211,42 +208,16 @@
     <!--PRODUCTOS-->
     <div class="container px-4 px-lg-5 mt-5">
       <h4>Productos</h4>
-    <form action="" method="post" id="allProducts">
-      <div class="form-floating">
+      <div class="form-floating mb-3">
         <input type="text" class="form-control" id="productInput" placeholder="Ej: Bicicleta">
         <label for="floatingInput">Buscar</label>
       </div>
       <div class="mb-5" id="btnsProduct" style="display: none;">
         <button type="button" class="btn btn-success mt-1" id="createProductBtn">Crear Nuevo</button>
       </div>
-      <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-3">
-        {% for p in products %}
-        <div class="col mb-5 product-card" value="{{p.id}}" id="productSelected">
-            <div class="card h-60">
-                <!-- Product image-->
-                <div class="zoomable-image-container">
-                  <img id="productImg" class="card-img-top fixed-size-img zoomable-image" src="{{p.image}}" alt="{{p.name}}" style="object-fit: cover; background-position: center top;"/>
-
-                </div>
-                <!-- Product details-->
-                <div class="card-body p-4">
-                    <div class="text-center">
-                        <!-- Product name-->
-                        <h5 id="productName" class="fw-bolder product-name" value="">{{p.name}}</h5>
-                        <!-- Product Category-->
-                        <p id="productCategoryName" value="">{{p.category.name}}</p>
-                    </div>
-                </div>
-                <!-- Product actions-->
-                <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center divProductBM" id="divProductBM" style="display: none;">
-                  <button type="button" class="btn btn-info mt-1" id="modifyProductBtn">Modificar</button>
-                  <button type="button"  class="btn btn-danger mt-1 delete-btn" id="deleteProductBtn">Eliminar</button>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+      <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-3" id="productContainer">
+        
       </div> 
-    </form>
   </div>
 
 
@@ -336,12 +307,18 @@
 
                 // Actualizar la interfaz sin recargarla
                 const categorySelect = document.getElementById('categorySelect');
+                const productCategorySelect = document.getElementById('productCategorySelect');
+
                 if (isEditing) {
                   // Si estás editando, actualiza la opción existente
                   const optionToUpdate = categorySelect.querySelector(`option[value="${categoryId}"]`);
+                  const optionProdToUpdate = productCategorySelect.querySelector(`option[value="${categoryId}"]`);
+
                   if (optionToUpdate) {
                       optionToUpdate.textContent = categoryName;
                       optionToUpdate.setAttribute('data-icon', categoryIcon);
+                      optionProdToUpdate.textContent = categoryName;
+                      optionProdToUpdate.setAttribute('data-icon', categoryIcon);
                   }
               } else {
                   // Si estás creando una nueva categoría, añade una nueva opción
@@ -349,7 +326,13 @@
                   newOption.value = data.newCategoryId; 
                   newOption.textContent = categoryName;
                   newOption.setAttribute('data-icon', categoryIcon);
-                  categorySelect.appendChild(newOption); 
+                  categorySelect.appendChild(newOption);
+
+                  const newProdOption = document.createElement('option');
+                  newProdOption.value = data.newCategoryId; 
+                  newProdOption.textContent = categoryName;
+                  newProdOption.setAttribute('data-icon', categoryIcon);
+                  productCategorySelect.append(newProdOption);
               }
 
 
@@ -364,7 +347,7 @@
 
 </script>
 
-<!--Script Modal p/ Crear/Modificar Productos-->
+<!--Script Modal p/ Crear/Modificar Productos
 <script>
   document.addEventListener('DOMContentLoaded', async (event) => {
     
@@ -376,6 +359,8 @@
     const productCategorySelect = document.getElementById('productCategorySelect');
     const saveProductBtn = document.getElementById('saveProduct');
     const frmModalProduct = document.getElementById('productForm');
+    const productContainer = document.getElementById('productContainer');
+
     let isEditing = false;
     let productId = null;
 
@@ -386,6 +371,9 @@
     createProductBtn.addEventListener('click', () => {
         isEditing = false;
         productId = null;
+        productNameInput.value = '';
+        productImgInput.value = '';
+        productCategorySelect.value = 'Categorías';
         frmModalProduct.action = productNewUrl;
         productModalLabel.textContent = 'Crear Producto';
         productModal.show();
@@ -423,14 +411,15 @@
           productModal.show();
       });
   });
-
-    frmModalProduct.addEventListener('submit', async (event) => {
+    createModifyProduct();
+    function createModifyProduct(){
+      frmModalProduct.addEventListener('submit', async (event) => {
         event.preventDefault(); 
         const url = frmModalProduct.action;
         const productName = productNameInput.value;
         const productImg = productImgInput.value;
         const productCategory = productCategorySelect.value;
-
+    
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -440,51 +429,28 @@
                 },
                 body: `productName=${encodeURIComponent(productName)}&productImg=${encodeURIComponent(productImg)}&productCategory=${encodeURIComponent(productCategory)}`
             });
-
+    
             const data = await response.json();
-
-            if (data.status === 'success') {                
+    
+            if (data.status === 'success') {
                 productModal.hide();
-                productNameInput.value = ''; 
-                productImgInput.value = '';
-
+    
                 if (isEditing) {
                     const productCard = document.querySelector(`.product-card[value="${productId}"]`);
                     productCard.querySelector('#productImg').src = productImg;
                     productCard.querySelector('#productName').textContent = productName;
                     productCard.querySelector('#productCategoryName').textContent = productCategorySelect.options[productCategorySelect.selectedIndex].text;
                 } else {
-                    const productContainer = document.querySelector('.row');
-                    productContainer.insertAdjacentHTML('beforeend', data.productHtml);
-                    const newProductCard = productContainer.querySelector(`.product-card[value="${data.newProductId}"]`);
-
-                    newProductCard.querySelector('#modifyProductBtn').addEventListener('click', async () => {
-                        isEditing = true;
-                        productId = newProductCard.getAttribute('value');
-                        frmModalProduct.action = productEditUrlBase.replace('ID_PLACEHOLDER', productId);
-                        productModalLabel.textContent = 'Modificar Producto';
-
-                        try {
-                            const response = await fetch(`product/product/${productId}`, {
-                                method: 'GET',
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            });
-                            const data = await response.json();
-                            if (data.status === 'success') {
-                                productNameInput.value = data.product.name;
-                                productImgInput.value = data.product.image;
-                                productCategorySelect.value = data.product.category.id;
-                            } else {
-                                alert('Error al cargar los datos del producto');
-                            }
-                        } catch (error) {
-                            console.error('Error:', error);
+                    const productCard = createProductCard({
+                        id: data.newProductId,
+                        name: productName,
+                        image: productImg,
+                        category: {
+                            id: productCategory,
+                            name: productCategorySelect.options[productCategorySelect.selectedIndex].text
                         }
-
-                        productModal.show();
                     });
+                    productContainer.appendChild(productCard);
                 }
             } else {
                 console.error(data.message);
@@ -493,9 +459,12 @@
             console.error('Error:', error);
         }
     });
+    }
+  
+
 });
 
-</script>
+</script>-->
     
 <!--Script Login Usuarios-->
 <script>
@@ -566,6 +535,7 @@
   document.addEventListener('DOMContentLoaded', async function() {
       const categorySelect = document.getElementById('categorySelect');
       const categoryLstFrm = document.getElementById('lstCategorias');
+      const productCategorySelect = document.getElementById('productCategorySelect');
       const deleteCategoryBtn = document.getElementById('deleteCategoryBtn');
       const modifyCategoryBtn = document.getElementById('modifyCategoryBtn');
       const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
@@ -585,6 +555,12 @@
                   option.textContent = category.name;
                   categorySelect.appendChild(option);
               });
+              data.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                productCategorySelect.appendChild(option);
+            });
           } else {
               console.error('Error al cargar las categorías');
           }
@@ -650,57 +626,12 @@
   });
   </script>
 
-<!--Script para Eliminar Productos-->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-      const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-      const frmEliminar = document.getElementById('frmEliminar');
-      let productIdToDelete = null;
-
-      // Add event listeners to all delete buttons
-      document.querySelectorAll('.delete-btn').forEach(button => {
-          button.addEventListener('click', function(event) {
-              productIdToDelete = event.target.closest('.product-card').getAttribute('value');
-              if (productIdToDelete) {
-                  deleteModal.show();
-              } else {
-                  alert('Seleccione un producto para eliminar.');
-              }
-          });
-      });
-
-      // Handle form submission for deletion
-      frmEliminar.addEventListener('submit', async function(event) {
-          event.preventDefault();
-          if (productIdToDelete) {
-              try {
-                  const response = await fetch(`/product/delete/${productIdToDelete}`, {
-                      method: 'DELETE',
-                      headers: {
-                          'X-Requested-With': 'XMLHttpRequest'
-                      }
-                  });
-                  const data = await response.json();
-                  if (data.status === 'success') {
-                      alert(data.message);
-                      deleteModal.hide();
-                      // Remove the product card from the DOM
-                      document.querySelector(`.product-card[value="${productIdToDelete}"]`).remove();
-                  } else {
-                      alert('Error al eliminar el producto.');
-                  }
-              } catch (error) {
-                  console.error('Error:', error);
-              }
-          }
-      });
-  });
-</script>
 
 <!--Script para recargar Select-->
 <script>
   async function loadCategories() {
     const categorySelect = document.getElementById('categorySelect');
+    const productCategorySelect = document.getElementById('productCategorySelect');
     const categoryLstFrm = document.getElementById('lstCategorias');
     const deleteCategoryBtn = document.getElementById('deleteCategoryBtn');
 
@@ -712,12 +643,20 @@
         if (data.status === 'success') {
             // Limpiar el select antes de añadir las nuevas opciones
             categorySelect.innerHTML = '<option selected disabled>Categorías</option>';
+            productCategorySelect.innerHTML = '<option selected disabled>Categorías</option>';
+
             data.categories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category.id;
                 option.textContent = category.name;
                 categorySelect.appendChild(option);
             });
+            data.categories.forEach(category => {
+              const option = document.createElement('option');
+              option.value = category.id;
+              option.textContent = category.name;
+              productCategorySelect.appendChild(option);
+          });
 
         } else {
             console.error('Error al cargar las categorías');
@@ -727,23 +666,274 @@
     }
 }
 </script>
-<!--Script para Buscador-->
-<script>
-  document.addEventListener('DOMContentLoaded', (event) => {
-      const searchInput = document.getElementById('productInput');
-      const productCards = document.querySelectorAll('.product-card');
 
-      searchInput.addEventListener('input', () => {
-          const searchTerm = searchInput.value.toLowerCase();
-          productCards.forEach(card => {
-              const productName = card.querySelector('.product-name').textContent.toLowerCase();
-              if (productName.includes(searchTerm)) {
-                  card.style.display = 'block';
-              } else {
-                  card.style.display = 'none';
-              }
-          });
-      });
+
+  <!--Script para Buscar, Listar, Crear, Modificar y Eliminar Productos-->
+<script>
+  document.addEventListener('DOMContentLoaded', async (event) => {
+    const searchInput = document.getElementById('productInput');
+    const productContainer = document.getElementById('productContainer');
+    const frmModalProduct = document.getElementById('productForm');
+    const productModalLabel = document.getElementById('productModalLabel');
+    const productNameInput = document.getElementById('productName');
+    const productImgInput = document.getElementById('productImg');
+    const productCategorySelect = document.getElementById('productCategorySelect');
+    const productModal = new bootstrap.Modal(document.getElementById('productModal'));
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const frmEliminar = document.getElementById('frmEliminar');
+    const createProductBtn = document.getElementById('createProductBtn');
+    const saveProductBtn = document.getElementById('saveProduct');
+
+    let isEditing = false;
+    let productId = null;
+    let productIdToDelete = null;
+
+    const productEditUrlBase = "{{ path('product_edit', { 'id': 'ID_PLACEHOLDER' }) }}";
+    const productNewUrl = "{{ path('product_new') }}";
+    const productDetailsUrlBase = "{{ path('product_details', { 'id': 'ID_PLACEHOLDER' }) }}";
+
+    // Función para filtrar los productos basados en el término de búsqueda
+    const filterProducts = () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const productCards = productContainer.querySelectorAll('.product-card');
+        productCards.forEach(card => {
+            const productName = card.querySelector('.product-name').textContent.toLowerCase();
+            if (productName.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    };
+
+    // Función para eliminar productos
+    const deleteProducts = () => {
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function(event) {
+                productIdToDelete = event.target.closest('.product-card').getAttribute('value');
+                if (productIdToDelete) {
+                    deleteModal.show();
+                } else {
+                    alert('Seleccione un producto para eliminar.');
+                }
+            });
+        });
+
+        // Handle form submission for deletion
+        frmEliminar.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            if (productIdToDelete) {
+                try {
+                    const response = await fetch(`/product/delete/${productIdToDelete}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        deleteModal.hide();
+                        // Remove the product card from the DOM
+                        document.querySelector(`.product-card[value="${productIdToDelete}"]`).remove();
+                    } else {
+                        alert('Error al eliminar el producto.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            } 
+        });
+    };
+
+    // Añadir el event listener para la entrada de búsqueda
+    searchInput.addEventListener('input', filterProducts);
+
+    // Cargar los productos al cargar la página
+    try {
+        const response = await fetch('/products', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            data.products.forEach(product => {
+                const productCard = createProductCard(product);
+                productContainer.appendChild(productCard);
+            });
+            // Filtrar productos después de cargar
+            filterProducts();
+            deleteProducts();  // Asegura que los botones de eliminar tengan event listeners
+        } else {
+            console.error('Error al cargar los productos');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+
+    function createProductCard(product) {
+        const productCard = document.createElement('div');
+        productCard.classList.add('col', 'mb-5', 'product-card');
+        productCard.setAttribute('value', product.id);
+
+        productCard.innerHTML = `
+            <div class="card h-60">
+                <div class="zoomable-image-container">
+                    <img id="productImg" class="card-img-top fixed-size-img zoomable-image" src="${product.image}" alt="${product.name}" style="object-fit: cover; background-position: center top;"/>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center">
+                        <h5 id="productName" class="fw-bolder product-name">${product.name}</h5>
+                        <p id="productCategoryName">${product.category.name}</p>
+                    </div>
+                </div>
+                <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center divProductBM" style="display: none;">
+                    <button type="button" class="btn btn-info mt-1" id="modifyProductBtn">Modificar</button>
+                    <button type="button" class="btn btn-danger mt-1 delete-btn" id="deleteProductBtn">Eliminar</button>
+                </div>
+            </div>
+        `;
+
+        // Asigna los event listeners para modificar y eliminar
+        productCard.querySelector('#modifyProductBtn').addEventListener('click', async () => {
+            isEditing = true;
+            productId = productCard.getAttribute('value');
+            frmModalProduct.action = productEditUrlBase.replace('ID_PLACEHOLDER', productId);
+            productModalLabel.textContent = 'Modificar Producto';
+
+            try {
+                const response = await fetch(`/product/${productId}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    productNameInput.value = data.product.name;
+                    productImgInput.value = data.product.image;
+                    productCategorySelect.value = data.product.category.id;
+                } else {
+                    alert('Error al cargar los datos del producto');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+            productModal.show();
+        });
+
+        productCard.querySelector('#deleteProductBtn').addEventListener('click', () => {
+            productIdToDelete = productCard.getAttribute('value');
+            if (productIdToDelete) {
+                deleteModal.show();
+            } else {
+                alert('Seleccione un producto para eliminar.');
+            }
+        });
+
+        return productCard;
+    }
+
+    createProductBtn.addEventListener('click', () => {
+        isEditing = false;
+        productId = null;
+        productNameInput.value = '';
+        productImgInput.value = '';
+        productCategorySelect.value = 'Categorías';
+        frmModalProduct.action = productNewUrl;
+        productModalLabel.textContent = 'Crear Producto';
+        productModal.show();
+    });
+
+    document.querySelectorAll('.product-card').forEach(card => {
+        const modifyProductBtn = card.querySelector('#modifyProductBtn');
+        modifyProductBtn.addEventListener('click', async () => {
+            isEditing = true;
+            productId = card.getAttribute('value');
+            frmModalProduct.action = productEditUrlBase.replace('ID_PLACEHOLDER', productId);
+            productModalLabel.textContent = 'Modificar Producto';
+
+            // Trae los datos del Producto en cuestión
+            try {
+                const response = await fetch(productDetailsUrlBase.replace('ID_PLACEHOLDER', productId), {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    productNameInput.value = data.product.name;
+                    productImgInput.value = data.product.image;
+                    productCategorySelect.value = data.product.category.id;
+                } else {
+                    alert('Error al cargar los datos del producto');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+            productModal.show();
+        });
+    });
+
+    createModifyProduct();
+
+    function createModifyProduct() {
+        frmModalProduct.addEventListener('submit', async (event) => {
+            event.preventDefault(); 
+            const url = frmModalProduct.action;
+            const productName = productNameInput.value;
+            const productImg = productImgInput.value;
+            const productCategory = productCategorySelect.value;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `productName=${encodeURIComponent(productName)}&productImg=${encodeURIComponent(productImg)}&productCategory=${encodeURIComponent(productCategory)}`
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    productModal.hide();
+
+                    if (isEditing) {
+                        const productCard = document.querySelector(`.product-card[value="${productId}"]`);
+                        productCard.querySelector('#productImg').src = productImg;
+                        productCard.querySelector('#productName').textContent = productName;
+                        productCard.querySelector('#productCategoryName').textContent = productCategorySelect.options[productCategorySelect.selectedIndex].text;
+                    } else {
+                        const productCard = createProductCard({
+                            id: data.newProductId,
+                            name: productName,
+                            image: productImg,
+                            category: {
+                                id: productCategory,
+                                name: productCategorySelect.options[productCategorySelect.selectedIndex].text
+                            }
+                        });
+                        productCard.querySelector('.divProductBM').setAttribute('style', 'display: block;')
+                        productContainer.appendChild(productCard);
+                        deleteProducts(); 
+                        
+                    }
+                } else {
+                    console.error(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
   });
 </script>
 

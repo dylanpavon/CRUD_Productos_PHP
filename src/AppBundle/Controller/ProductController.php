@@ -12,6 +12,31 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ProductController extends Controller
 {
+ /**
+ * @Route("/products", name="product_list")
+ * @Method("GET")
+ */
+public function listProductsAction()
+{
+    $em = $this->getDoctrine()->getManager();
+    $products = $em->getRepository(Product::class)->findAll();
+
+    $productArray = [];
+    foreach ($products as $product) {
+        $productArray[] = [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'image' => $product->getImage(),
+            'category' => [
+                'id' => $product->getCategory()->getId(),
+                'name' => $product->getCategory()->getName()
+            ]
+        ];
+    }
+
+    return new JsonResponse(['status' => 'success', 'products' => $productArray]);
+}
+
     /**
      * Creates a new product entity.
      *
@@ -42,7 +67,7 @@ class ProductController extends Controller
                 $em->flush();
                 $newProductId = $product->getId();
     
-                $this->addFlash('success', 'Producto registrado correctamente.');
+                //$this->addFlash('success', 'Producto registrado correctamente.');
     
                 $productHtml = $this->renderView('product/_product.html.twig', ['product' => $product]);
     
@@ -83,7 +108,7 @@ class ProductController extends Controller
         
                 $em->flush();
             
-                $this->addFlash('success', 'Producto modificado correctamente.');
+                //$this->addFlash('success', 'Producto modificado correctamente.');
                 return new JsonResponse(['status' => 'success'], 200);
                 
             } else {
